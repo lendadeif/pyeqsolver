@@ -2,7 +2,7 @@ import re
 
 class EquationParser:
 
-    def __init__(self,text):
+    def __init__(self,text:str):
         self.text=text
         self.variables=self.variables_parser
 
