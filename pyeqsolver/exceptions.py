@@ -22,3 +22,6 @@ class InconsistentSystemException(PyEqSolverError):
 class InfiniteSolutionsException(PyEqSolverError):
     def __init__(self, message: str):
         super().__init__(message)
+
+if __name__=="__main__":
+    ...
