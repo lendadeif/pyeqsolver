@@ -53,7 +53,9 @@ class EquationParser:
             # re.findall(r"[a-zA-Z_]\w*", equation)
             vars.update(re.findall(r"[a-zA-Z]{1,}_*[a-zA-Z]*\d*",equation))
             self.variables = {var: 0 for var in vars}
-        return self.variables
+        # orted(your_dict.items(), key=lambda item: item[0])
+        # return self.variables
+        return dict(sorted(self.variables.items(), key=lambda item: item[0]))
 
     def extract_coefficients(self,equation):
         left, right = self.parse_side(equation)
@@ -69,8 +71,9 @@ class EquationParser:
             right_sum = sum(float(match) if match not in [
                             "", "+", "-"] else float(match+"1") for match in right_matches)
             variables[var] = left_sum-right_sum
+        
         return variables
-
+    
     def extract_constants(self,equation):
         left, right = self.parse_side(equation)
         print(left, right)
@@ -93,14 +96,15 @@ class EquationParser:
 
     def extract_augmented_matrix(self):
         for i,p in enumerate(self.parsed):
-            self.augmented[i]=list(self.parsed[i][0].values())+[self.parsed[i][1]]
+            self.augmented[i]=list(p[0].values())+[p[1]]
+            # print(p)
         return self.augmented
 
 if __name__ == "__main__":
     eq = EquationParser("pyeqsolver/playground.txt")
 
     print("Equations:", eq.equations)
-    print("Variables:", eq.variables)
+    print("Variables:", sorted(eq.variables))
 
     print("Parsed equations:", eq.extract_equation())
     print(eq.extract_augmented_matrix())
