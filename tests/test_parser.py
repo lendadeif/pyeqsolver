@@ -168,7 +168,7 @@ class TestParser(unittest.TestCase):
     def test_valid_13(self):
         input_file=str(DATA_DIR)+"/test13.txt"
                 
-        with self.assertRaises(InvalidFileFormatException):
+        with self.assertRaises(FileNotFoundError):
             parser=EquationParser(input_file)
             parser.extract_augmented_matrix()
     

@@ -20,7 +20,7 @@ class EquationParser:
     @file_path.setter
     def file_path(self, file_path):
         if not Path(file_path).is_file():
-            raise InvalidFileFormatException(
+            raise FileNotFoundError(
                 "This file is not exist or is not a file")
         self._file_path = Path(file_path)
 
