@@ -1,5 +1,5 @@
-from .exceptions import InconsistentSystemException
-from .exporter import JSONEporter
+from exceptions import InconsistentSystemException,DimensionMismatchException
+from exporter import JSONEporter
 class GaussianSolver:
     def __init__(self,matrix:list[float|int],variables:list[str]):
         self.matrix=matrix
@@ -10,6 +10,17 @@ class GaussianSolver:
     
     def solve(self)->dict[str,float]:
         self._forward_eliminate()
+        #check the type of the system
+        type=self._get_system_type()
+        if type=="Underdetermined":
+            raise DimensionMismatchException(f"{self.rows} equations for {len(self.variables)} ({[var for var in self.variables]})")
+
+        #check the consistency of the matrix
+        consistency=self._check_consistency()
+        if consistency=="No Solution":
+            raise InconsistentSystemException("The system has no solution")
+        if consistency== "Infinitely many solutions":
+            raise InconsistentSystemException("Infinitely many solutions")
         solution=self._back_substitute()
         ex=JSONEporter("output.txt")
         ex.save( dict(zip(self.variables,solution)),self.get_metadata())
@@ -79,12 +90,27 @@ class GaussianSolver:
 
 
     def _check_consistency(self):
-        if self._rank(self.matrix[:-1])==self.cols:
-            return "Unique Solution"
-        if self._rank(self.matrix)!=self._rank(self.matrix[:-1]):
+        coefficient_matrix = [
+            row[:-1] for row in self.matrix
+        ]
+
+        rank_a = self._rank(coefficient_matrix)
+        rank_aug = self._rank(self.matrix)
+
+        if rank_a != rank_aug:
             return "No Solution"
-        if self._rank(self.matrix[:-1])<self.cols:
-            return "Infinitely many solutions"
+
+        if rank_a == self.cols:
+            return "Unique Solution"
+
+        return "Infinitely many solutions"
+
+    def _get_system_type(self):
+        if self.rows==self.cols:
+            return "Determined"
+        if self.rows<self.cols:
+            return "Underdetermined"
+        return "Overdetermined"
 
 # Testing
 if __name__=="__main__":
@@ -93,7 +119,7 @@ if __name__=="__main__":
             [ 1.0, 0.0, 6.0, 12.0]]
 
     variables=['x1','x2','x3']
-    
+    # matrix=[[1,2,5],[2,4,10]]
+    # variables=['x1','x2']
     solver=GaussianSolver(matrix,variables)
-    print(solver.matrix)
     print(solver.solve())
