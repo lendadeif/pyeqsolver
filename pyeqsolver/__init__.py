@@ -1,1 +1,3 @@
-from exceptions import InvalidFileFormatException, DimensionMismatchException, InconsistentSystemException, InfiniteSolutionsException
+from .exceptions import InvalidFileFormatException, DimensionMismatchException, InconsistentSystemException, InfiniteSolutionsException
+from .parser import EquationParser
+from .solver import GaussianSolver

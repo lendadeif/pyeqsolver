@@ -1,7 +1,7 @@
 import re
 
 from pathlib import Path
-from exceptions import InvalidFileFormatException
+from .exceptions import InvalidFileFormatException
 
 
 class EquationParser:

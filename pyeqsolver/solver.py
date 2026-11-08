@@ -1,13 +1,18 @@
-from exceptions import InconsistentSystemException
+from .exceptions import InconsistentSystemException
+from .exporter import JSONEporter
 class GaussianSolver:
     def __init__(self,matrix:list[float|int],variables:list[str]):
         self.matrix=matrix
         self.variables=variables
         self.cols,self.rows=len(self.variables),len(self.matrix)
+        self.free_variables=[]
+
     
     def solve(self)->dict[str,float]:
         self._forward_eliminate()
         solution=self._back_substitute()
+        ex=JSONEporter("output.txt")
+        ex.save( dict(zip(self.variables,solution)),self.get_metadata())
         return dict(zip(self.variables,solution))
     def get_metadata(self):
         return {"num_variables": self.cols,
@@ -32,6 +37,7 @@ class GaussianSolver:
             self._partial_pivoting(pivot_row,pivot_col)
             pivot=self.matrix[pivot_row][pivot_col]
             if self._is_zero(pivot):
+                self.free_variables.append(self.variables[pivot_col])
                 continue  
             # Normalization
             for j in range(len(self.matrix[pivot_row])):
@@ -45,6 +51,12 @@ class GaussianSolver:
                 self.matrix[i][pivot_col] = 0.0
             self.pivot_cols.append(pivot_col)
             pivot_row+=1
+
+        #Rounding the matrix
+        self.matrix=[
+            [round(num,2)for num in row]
+            for row in self.matrix
+        ]
         return self.matrix
     
     def _back_substitute(self):
@@ -55,18 +67,24 @@ class GaussianSolver:
                 sol[i]-=sol[j]*self.matrix[i][j]
         return sol
 
-    def _rank(self,tolerance=1e-9):
+    def _rank(self,matrix,tolerance=1e-9):
         rank = 0
-        for row in self.matrix:
-            if any(abs(value) >tolerance for value in row[:-1]):
+        for row in matrix:
+            if any(abs(value) >tolerance for value in row):
                 rank += 1
         return rank
+    
     def _is_zero(self,value:float)->bool:
         return abs(value)<1e-9
 
 
     def _check_consistency(self):
-        ...
+        if self._rank(self.matrix[:-1])==self.cols:
+            return "Unique Solution"
+        if self._rank(self.matrix)!=self._rank(self.matrix[:-1]):
+            return "No Solution"
+        if self._rank(self.matrix[:-1])<self.cols:
+            return "Infinitely many solutions"
 
 # Testing
 if __name__=="__main__":
