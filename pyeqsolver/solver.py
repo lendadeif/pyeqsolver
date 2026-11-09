@@ -1,7 +1,8 @@
-from exceptions import InconsistentSystemException,DimensionMismatchException
-from exporter import JSONEporter
+from .exceptions import InconsistentSystemException,DimensionMismatchException
+from .exporter import JSONExporter
+from .parser import EquationParser
 class GaussianSolver:
-    def __init__(self,matrix:list[float|int],variables:list[str]):
+    def __init__(self,matrix:list[float|int],variables):
         self.matrix=matrix
         self.variables=variables
         self.cols,self.rows=len(self.variables),len(self.matrix)
@@ -22,7 +23,7 @@ class GaussianSolver:
         if consistency== "Infinitely many solutions":
             raise InconsistentSystemException("Infinitely many solutions")
         solution=self._back_substitute()
-        ex=JSONEporter("output.txt")
+        ex=JSONExporter("output.txt")
         ex.save( dict(zip(self.variables,solution)),self.get_metadata())
         return dict(zip(self.variables,solution))
     def get_metadata(self):
@@ -39,6 +40,7 @@ class GaussianSolver:
         return self.matrix
     
     def _forward_eliminate(self):
+        self.variables=list(self.variables.keys())
         pivot_row=0
         self.pivot_cols=[]
         for pivot_col in range(self.cols):
@@ -47,6 +49,7 @@ class GaussianSolver:
                 break
             self._partial_pivoting(pivot_row,pivot_col)
             pivot=self.matrix[pivot_row][pivot_col]
+
             if self._is_zero(pivot):
                 self.free_variables.append(self.variables[pivot_col])
                 continue  
@@ -65,7 +68,7 @@ class GaussianSolver:
 
         #Rounding the matrix
         self.matrix=[
-            [round(num,2)for num in row]
+            [round(num,4)for num in row]
             for row in self.matrix
         ]
         return self.matrix
@@ -76,7 +79,8 @@ class GaussianSolver:
             sol[i]=self.matrix[i][-1]
             for j in range(i+1,self.cols):
                 sol[i]-=sol[j]*self.matrix[i][j]
-        return sol
+        result=[self._clean_float(value) for value in sol]
+        return result
 
     def _rank(self,matrix,tolerance=1e-9):
         rank = 0
@@ -88,6 +92,10 @@ class GaussianSolver:
     def _is_zero(self,value:float)->bool:
         return abs(value)<1e-9
 
+    def _clean_float(self,value):
+        if self._is_zero(value):
+            return 0.0
+        return value
 
     def _check_consistency(self):
         coefficient_matrix = [
@@ -121,5 +129,9 @@ if __name__=="__main__":
     variables=['x1','x2','x3']
     # matrix=[[1,2,5],[2,4,10]]
     # variables=['x1','x2']
+    Parser=EquationParser("tests/data/test7.txt")
+    Parser.extract_augmented_matrix()
+    matrix,variables=Parser.augmented,Parser.variables
+    # print(matrix)
     solver=GaussianSolver(matrix,variables)
     print(solver.solve())

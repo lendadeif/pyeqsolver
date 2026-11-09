@@ -1,3 +1,4 @@
 from .exceptions import InvalidFileFormatException, DimensionMismatchException, InconsistentSystemException, InfiniteSolutionsException
 from .parser import EquationParser
 from .solver import GaussianSolver
+from .exporter import JSONExporter

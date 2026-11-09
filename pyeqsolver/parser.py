@@ -25,15 +25,13 @@ class EquationParser:
         self._file_path = Path(file_path)
 
     def read_file(self):
-        try:
-            with open(self.file_path, "r") as f:
-                self._equations = f.readlines()
-            if self._equations == []:
-                raise InvalidFileFormatException("An empty file is not accepted")
-        except Exception as e:
-            print(f"Error: {e}")
-        else:
-            return self._equations
+        
+        with open(self.file_path, "r") as f:
+            self._equations = f.readlines()
+        if self._equations == [] or self._equations is None:
+            raise InvalidFileFormatException("An empty file is not accepted")
+    
+        return self._equations
 
 
     def validate_side(self,side):
@@ -101,7 +99,7 @@ class EquationParser:
             self.parsed.append((coeffecient, constants))
         return self.parsed
 
-    def extract_augmented_matrix(self):
+    def parse(self):
         self.extract_equation()
         for i, p in enumerate(self.parsed):
             self.augmented[i] = list(p[0].values())+[p[1]]
@@ -110,11 +108,11 @@ class EquationParser:
 
 if __name__ == "__main__":
     # eq = EquationParser("pyeqsolver/playground.txt")
-    eq = EquationParser("tests/data/test11.txt")
+    eq = EquationParser("pyeqsolver/playground.txt")
 
     # print("Equations:", eq.equations)
-    print(eq.validate_equation("2x+3x"))
+    # print(eq.validate_equation("2x+3x"))
     # print("Variables:", sorted(eq.variables))
 
     # print("Parsed equations:", eq.extract_equation())
-    # print(eq.extract_augmented_matrix())
+    print(eq.parse())
